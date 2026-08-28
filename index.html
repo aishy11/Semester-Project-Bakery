@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bakery Management System | বেকারি ম্যানেজমেন্ট</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="flex h-screen overflow-hidden bg-slate-50 text-slate-800">
+
+  <!-- ================= FULLSCREEN LOGIN OVERLAY ================= -->
+  <div id="login-overlay" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6 transform transition-all border border-slate-100">
+      
+      <!-- Login Header Branding -->
+      <div class="text-center space-y-2">
+        <div class="w-16 h-16 rounded-2xl bg-orange-600 flex items-center justify-center text-white text-3xl font-bold shadow-lg shadow-orange-600/30 mx-auto">
+          🧁
+        </div>
+        <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Sweet & Crust</h2>
+        <p class="text-xs text-slate-500 font-medium">Bakery Management System Login</p>
+      </div>
+
+      <!-- Quick Preset Demo Accounts -->
+      <div class="bg-orange-50/80 border border-orange-200/60 rounded-2xl p-3.5 space-y-2 text-xs">
+        <p class="font-bold text-orange-900 flex items-center justify-between">
+          <span><i class="fa-solid fa-key mr-1"></i> Demo Login Quick Fill:</span>
+        </p>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" onclick="fillDemoCredentials('admin', 'admin123')" class="px-3 py-1.5 bg-white hover:bg-orange-100/60 text-orange-900 font-semibold rounded-xl border border-orange-200 shadow-xs text-[11px] flex items-center justify-center gap-1">
+            <span>👑 Admin</span>
+          </button>
+          <button type="button" onclick="fillDemoCredentials('cashier', 'bakery123')" class="px-3 py-1.5 bg-white hover:bg-orange-100/60 text-orange-900 font-semibold rounded-xl border border-orange-200 shadow-xs text-[11px] flex items-center justify-center gap-1">
+            <span>👨‍🍳 Cashier</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" onsubmit="handleLoginSubmit(event)" class="space-y-4 text-xs">
+        <div id="login-error-msg" class="hidden p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl font-medium text-xs text-center">
+          Invalid username or password.
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1.5">Username</label>
+          <div class="relative">
+            <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" id="login-username" required placeholder="Enter username (admin/cashier)" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1.5">Password</label>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="password" id="login-password" required placeholder="Enter password" class="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500">
+            <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <i id="toggle-pw-icon" class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-3.5 bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-orange-600/30 transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-right-to-bracket"></i> Login to System
+        </button>
+      </form>
+
+      <div class="text-center text-[11px] text-slate-400 pt-2 border-t border-slate-100">
+        Bakery Management System &bull; Secured Local Storage
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col flex-shrink-0 border-r border-slate-800">
+    <!-- Brand Header -->
+    <div class="h-20 flex items-center px-6 gap-3 border-b border-slate-800">
+      <div class="w-10 h-10 rounded-xl bg-orange-600 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-orange-600/30">
+        🧁
+      </div>
+      <div>
+        <h1 class="font-bold text-white text-base leading-tight">Sweet & Crust</h1>
+        <p class="text-xs text-orange-400 font-medium">Bakery Management</p>
+      </div>
+    </div>
+
+    <!-- Nav Items -->
+    <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
+      <a href="#dashboard" data-tab="dashboard" class="nav-link active flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+        <i class="fa-solid fa-chart-pie text-lg w-5 text-center"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="#products" data-tab="products" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+        <i class="fa-solid fa-bread-slice text-lg w-5 text-center"></i>
+        <span>Products Menu</span>
+      </a>
+      <a href="#pos" data-tab="pos" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+        <i class="fa-solid fa-cart-shopping text-lg w-5 text-center"></i>
+        <span>POS Billing</span>
+      </a>
+      <a href="#orders" data-tab="orders" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+        <i class="fa-solid fa-receipt text-lg w-5 text-center"></i>
+        <span>Order History</span>
+      </a>
+      <a href="#inventory" data-tab="inventory" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+        <i class="fa-solid fa-boxes-stacked text-lg w-5 text-center"></i>
+        <span>Inventory</span>
+      </a>
+      <a href="#customers" data-tab="customers" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+        <i class="fa-solid fa-users text-lg w-5 text-center"></i>
+        <span>Customers</span>
+      </a>
+      <a href="#settings" data-tab="settings" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+        <i class="fa-solid fa-sliders text-lg w-5 text-center"></i>
+        <span>Backup & Data</span>
+      </a>
+    </nav>
+
+    <!-- Sidebar Footer with Current User & Logout -->
+    <div class="p-4 border-t border-slate-800 space-y-2">
+      <div id="sidebar-user-badge" class="bg-slate-800/80 rounded-xl p-3 text-xs text-slate-300 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span id="user-avatar-icon" class="text-base">👑</span>
+          <div>
+            <p id="user-display-name" class="font-bold text-white leading-tight">Admin</p>
+            <p id="user-display-role" class="text-[10px] text-orange-400 font-semibold">System Administrator</p>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="handleLogout()" class="w-full py-2 bg-slate-800 hover:bg-rose-600/20 text-slate-400 hover:text-rose-400 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-2">
+        <i class="fa-solid fa-right-from-bracket"></i> Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT AREA -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    
+    <!-- TOP NAVBAR -->
+    <header class="h-20 bg-white border-b border-slate-200 px-8 flex items-center justify-between gap-4 flex-shrink-0">
+      <div>
+        <h2 id="page-title" class="text-xl font-bold text-slate-900">Dashboard</h2>
+        <p id="page-subtitle" class="text-xs text-slate-500">Welcome back to Bakery Control Panel</p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Quick Add Product Button -->
+        <button onclick="openAddProductModal()" class="admin-only-btn flex items-center gap-2 px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-orange-600/20 transition">
+          <i class="fa-solid fa-plus"></i> Add Product
+        </button>
+        <!-- Quick New POS Order -->
+        <button onclick="switchTab('pos')" class="flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold shadow-md transition">
+          <i class="fa-solid fa-cash-register"></i> Open POS
+        </button>
+        <!-- Logout Button in Top Header -->
+        <button onclick="handleLogout()" title="Logout" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 flex items-center justify-center transition">
+          <i class="fa-solid fa-power-off"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTENT VIEWS WRAPPER -->
+    <main class="flex-1 overflow-y-auto p-8">
+
+      <!-- ================= 1. DASHBOARD VIEW ================= -->
+      <section id="view-dashboard" class="tab-view space-y-8">
+        <!-- Metrics Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm bakery-card">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Sales</span>
+              <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-bangladeshi-taka-sign"></i>
+              </div>
+            </div>
+            <h3 id="stat-revenue" class="text-2xl font-extrabold text-slate-900 mt-4">৳ 0</h3>
+            <p class="text-xs text-emerald-600 mt-1 font-medium"><i class="fa-solid fa-arrow-up"></i> Lifetime Completed</p>
+          </div>
+
+          <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm bakery-card">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Orders</span>
+              <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-shopping-bag"></i>
+              </div>
+            </div>
+            <h3 id="stat-orders" class="text-2xl font-extrabold text-slate-900 mt-4">0</h3>
+            <p class="text-xs text-slate-500 mt-1">Processed orders</p>
+          </div>
+
+          <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm bakery-card">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Menu Items</span>
+              <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-cookie"></i>
+              </div>
+            </div>
+            <h3 id="stat-products" class="text-2xl font-extrabold text-slate-900 mt-4">0</h3>
+            <p class="text-xs text-slate-500 mt-1">Active items in menu</p>
+          </div>
+
+          <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm bakery-card">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Low Stock Alerts</span>
+              <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+            </div>
+            <h3 id="stat-low-stock" class="text-2xl font-extrabold text-slate-900 mt-4">0</h3>
+            <p class="text-xs text-amber-600 mt-1 font-medium">Items need restocking (&lt; 10)</p>
+          </div>
+        </div>
+
+        <!-- Dashboard Grid: Low Stock Alert + Recent Orders -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          <!-- Recent Orders List -->
+          <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="font-bold text-slate-900 text-base">Recent Orders</h3>
+              <button onclick="switchTab('orders')" class="text-xs text-orange-600 font-semibold hover:underline">View All &rarr;</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    <th class="pb-3">Order ID</th>
+                    <th class="pb-3">Customer</th>
+                    <th class="pb-3">Date</th>
+                    <th class="pb-3 text-right">Total</th>
+                    <th class="pb-3 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="dash-recent-orders-list" class="divide-y divide-slate-100 text-xs">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Low Stock Items Panel -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-slate-900 text-base">Low Stock Warnings</h3>
+              <span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-md text-[11px] font-bold">Action Needed</span>
+            </div>
+            <div id="dash-low-stock-list" class="space-y-3 flex-1 overflow-y-auto max-h-[320px] pr-1">
+              <!-- Rendered dynamically -->
+            </div>
+            <button onclick="switchTab('inventory')" class="mt-4 w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
+              Go to Inventory Manager
+            </button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ================= 2. PRODUCTS MENU VIEW (CRUD) ================= -->
+      <section id="view-products" class="tab-view hidden space-y-6">
+        <!-- Action Header & Search Filter Bar -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+          
+          <!-- Search Bar -->
+          <div class="relative w-full md:w-80">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input type="text" id="prod-search-input" onkeyup="renderProductsTable()" placeholder="Search bakery item..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500">
+          </div>
+
+          <!-- Category Filter -->
+          <div class="flex items-center gap-3 w-full md:w-auto">
+            <select id="prod-category-filter" onchange="renderProductsTable()" class="bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-orange-500/20">
+              <option value="ALL">All Categories</option>
+              <option value="Cakes">Cakes 🎂</option>
+              <option value="Breads">Breads 🍞</option>
+              <option value="Pastries">Pastries 🥐</option>
+              <option value="Biscuits">Biscuits 🥖</option>
+              <option value="Sweets">Sweets 🍩</option>
+              <option value="Snacks">Snacks 🧆</option>
+              <option value="Beverages">Beverages 🥤</option>
+            </select>
+
+            <button onclick="openAddProductModal()" class="admin-only-btn px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-orange-600/20 transition flex items-center gap-2 whitespace-nowrap">
+              <i class="fa-solid fa-plus"></i> Add New Product
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Products Table -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th class="px-6 py-4">Product Info</th>
+                  <th class="px-6 py-4">Category</th>
+                  <th class="px-6 py-4 text-right">Selling Price</th>
+                  <th class="px-6 py-4 text-right">Cost Price</th>
+                  <th class="px-6 py-4 text-center">Stock</th>
+                  <th class="px-6 py-4 text-center">Actions (CRUD)</th>
+                </tr>
+              </thead>
+              <tbody id="products-table-body" class="divide-y divide-slate-100 text-xs">
+                <!-- Dynamically Rendered -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 3. POS BILLING & CART VIEW ================= -->
+      <section id="view-pos" class="tab-view hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Left Column: Item Selection Grid (8 Cols) -->
+        <div class="lg:col-span-7 space-y-6">
+          <!-- POS Header & Category Filter -->
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+            <div class="relative">
+              <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+              <input type="text" id="pos-search" onkeyup="renderPOSGrid()" placeholder="Search item to add to bill..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20">
+            </div>
+
+            <!-- Quick Category Pill Selector -->
+            <div id="pos-category-pills" class="flex gap-2 overflow-x-auto pb-1 text-xs font-semibold">
+              <button onclick="filterPOSCategory('ALL')" class="pos-cat-btn px-3 py-1.5 rounded-lg bg-orange-600 text-white whitespace-nowrap">All Items</button>
+              <button onclick="filterPOSCategory('Cakes')" class="pos-cat-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap">Cakes 🎂</button>
+              <button onclick="filterPOSCategory('Breads')" class="pos-cat-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap">Breads 🍞</button>
+              <button onclick="filterPOSCategory('Pastries')" class="pos-cat-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap">Pastries 🥐</button>
+              <button onclick="filterPOSCategory('Sweets')" class="pos-cat-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap">Sweets 🍩</button>
+              <button onclick="filterPOSCategory('Biscuits')" class="pos-cat-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap">Biscuits 🥖</button>
+            </div>
+          </div>
+
+          <!-- Product Grid Cards -->
+          <div id="pos-items-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[560px] overflow-y-auto pr-1">
+            <!-- Dynamically Rendered -->
+          </div>
+        </div>
+
+        <!-- Right Column: Cart & Checkout (5 Cols) -->
+        <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 flex flex-col h-full min-h-[600px]">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+            <h3 class="font-bold text-slate-900 text-base"><i class="fa-solid fa-cart-shopping text-orange-600 mr-2"></i> Current Order</h3>
+            <button onclick="clearPOSCart()" class="text-xs text-rose-600 font-semibold hover:underline">Clear Cart</button>
+          </div>
+
+          <!-- Customer Input Box -->
+          <div class="my-4 space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200/60">
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <label class="block text-[11px] font-medium text-slate-500 mb-1">Customer Name</label>
+                <input type="text" id="pos-cust-name" placeholder="Walk-in Customer" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none">
+              </div>
+              <div>
+                <label class="block text-[11px] font-medium text-slate-500 mb-1">Phone Number</label>
+                <input type="text" id="pos-cust-phone" placeholder="017xxxxxxxx" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none">
+              </div>
+            </div>
+          </div>
+
+          <!-- Cart Items List -->
+          <div id="pos-cart-items" class="flex-1 overflow-y-auto space-y-3 py-2 border-b border-slate-100 min-h-[220px]">
+            <p class="text-xs text-slate-400 text-center py-10">No items added to cart yet.</p>
+          </div>
+
+          <!-- Order Summary & Calculations -->
+          <div class="pt-4 space-y-2 text-xs">
+            <div class="flex justify-between text-slate-600">
+              <span>Subtotal</span>
+              <span id="pos-subtotal" class="font-semibold text-slate-800">৳ 0</span>
+            </div>
+            
+            <div class="flex justify-between items-center text-slate-600">
+              <span>Discount (৳)</span>
+              <input type="number" id="pos-discount" onchange="calculatePOSTotals()" onkeyup="calculatePOSTotals()" value="0" min="0" class="w-20 px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-right font-medium text-xs focus:outline-none">
+            </div>
+
+            <div class="flex justify-between items-center text-slate-600">
+              <span>Tax / VAT (5%)</span>
+              <span id="pos-tax" class="font-semibold text-slate-800">৳ 0</span>
+            </div>
+
+            <div class="flex justify-between items-center pt-2 border-t border-slate-200 text-base font-extrabold text-slate-900">
+              <span>Grand Total</span>
+              <span id="pos-grand-total" class="text-orange-600">৳ 0</span>
+            </div>
+
+            <div class="pt-3">
+              <label class="block text-[11px] font-medium text-slate-500 mb-1">Payment Method</label>
+              <select id="pos-payment-method" class="w-full bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl text-xs font-semibold text-slate-800">
+                <option value="Cash">Cash Payment</option>
+                <option value="bKash">bKash Mobile Banking</option>
+                <option value="Nagad">Nagad Mobile Banking</option>
+                <option value="Card">Credit / Debit Card</option>
+              </select>
+            </div>
+
+            <button onclick="processPOSCheckout()" class="w-full mt-4 py-3.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-orange-600/30 transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-check-circle"></i> Complete & Print Receipt
+            </button>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ================= 4. ORDER HISTORY VIEW (CRUD) ================= -->
+      <section id="view-orders" class="tab-view hidden space-y-6">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+          <div class="relative w-full md:w-80">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input type="text" id="order-search" onkeyup="renderOrdersTable()" placeholder="Search order ID or customer..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
+          </div>
+
+          <div class="flex items-center gap-3">
+            <select id="order-status-filter" onchange="renderOrdersTable()" class="bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl text-xs font-medium text-slate-700">
+              <option value="ALL">All Statuses</option>
+              <option value="Completed">Completed</option>
+              <option value="Pending">Pending</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th class="px-6 py-4">Order ID</th>
+                  <th class="px-6 py-4">Customer Details</th>
+                  <th class="px-6 py-4">Date & Time</th>
+                  <th class="px-6 py-4 text-center">Items Count</th>
+                  <th class="px-6 py-4 text-right">Grand Total</th>
+                  <th class="px-6 py-4 text-center">Status</th>
+                  <th class="px-6 py-4 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="orders-table-body" class="divide-y divide-slate-100 text-xs">
+                <!-- Dynamically Rendered -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 5. INVENTORY & STOCK MANAGEMENT ================= -->
+      <section id="view-inventory" class="tab-view hidden space-y-6">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <h3 class="font-bold text-slate-900 text-sm">Bakery Inventory Levels</h3>
+          <div class="flex gap-2">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-semibold">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Adequate Stock (&ge; 10)
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-xs font-semibold">
+              <span class="w-2 h-2 rounded-full bg-amber-500"></span> Low Stock (&lt; 10)
+            </span>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th class="px-6 py-4">Product Name</th>
+                  <th class="px-6 py-4">Category</th>
+                  <th class="px-6 py-4 text-center">Current Quantity</th>
+                  <th class="px-6 py-4 text-center">Stock Status</th>
+                  <th class="px-6 py-4 text-center">Quick Stock Update</th>
+                </tr>
+              </thead>
+              <tbody id="inventory-table-body" class="divide-y divide-slate-100 text-xs">
+                <!-- Dynamically Rendered -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 6. CUSTOMERS VIEW (CRUD) ================= -->
+      <section id="view-customers" class="tab-view hidden space-y-6">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <div class="relative w-80">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input type="text" id="cust-search" onkeyup="renderCustomersTable()" placeholder="Search customer name or phone..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
+          </div>
+
+          <button onclick="openAddCustomerModal()" class="admin-only-btn px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-orange-600/20 transition flex items-center gap-2">
+            <i class="fa-solid fa-user-plus"></i> Add New Customer
+          </button>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th class="px-6 py-4">Customer ID</th>
+                  <th class="px-6 py-4">Name</th>
+                  <th class="px-6 py-4">Phone Number</th>
+                  <th class="px-6 py-4">Address</th>
+                  <th class="px-6 py-4 text-center">Total Orders</th>
+                  <th class="px-6 py-4 text-right">Total Spent</th>
+                  <th class="px-6 py-4 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="customers-table-body" class="divide-y divide-slate-100 text-xs">
+                <!-- Dynamically Rendered -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 7. BACKUP & SETTINGS VIEW ================= -->
+      <section id="view-settings" class="tab-view hidden max-w-4xl space-y-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+          <h3 class="font-bold text-slate-900 text-base"><i class="fa-solid fa-database text-orange-600 mr-2"></i> Local Data Backup & Export</h3>
+          <p class="text-xs text-slate-500">Download all your bakery products, orders, and customer records into a standalone JSON file for safe backup.</p>
+          
+          <div class="flex gap-4 pt-2">
+            <button onclick="downloadDataBackup()" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition flex items-center gap-2">
+              <i class="fa-solid fa-download"></i> Export Data Backup (.json)
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+          <h3 class="font-bold text-slate-900 text-base"><i class="fa-solid fa-upload text-blue-600 mr-2"></i> Restore / Import Backup</h3>
+          <p class="text-xs text-slate-500">Select a previously exported JSON backup file to restore system data.</p>
+          
+          <input type="file" id="import-file-input" accept=".json" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100">
+          
+          <button onclick="handleDataImport()" class="px-5 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-semibold transition flex items-center gap-2">
+            <i class="fa-solid fa-file-import"></i> Upload & Restore
+          </button>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 border-l-4 border-l-rose-500">
+          <h3 class="font-bold text-rose-600 text-base"><i class="fa-solid fa-arrow-rotate-left mr-2"></i> Reset to Initial Sample Data</h3>
+          <p class="text-xs text-slate-500">Restore factory sample products and records. Warning: This will clear current unsaved modifications.</p>
+          
+          <button onclick="confirmResetSampleData()" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold transition flex items-center gap-2">
+            <i class="fa-solid fa-trash-arrow-up"></i> Reset Factory Sample Data
+          </button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- 1. ADD / EDIT PRODUCT MODAL -->
+  <div id="modal-product" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 transform transition-all">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 id="modal-product-title" class="font-bold text-slate-900 text-base">Add New Bakery Product</h3>
+        <button onclick="closeProductModal()" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="form-product" onsubmit="handleProductFormSubmit(event)" class="space-y-4 text-xs">
+        <input type="hidden" id="prod-id-input">
+        
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">Product Name *</label>
+          <input type="text" id="prod-name-input" required placeholder="e.g. Vanilla Sponge Cake" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">Category *</label>
+            <select id="prod-category-input" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+              <option value="Cakes">Cakes 🎂</option>
+              <option value="Breads">Breads 🍞</option>
+              <option value="Pastries">Pastries 🥐</option>
+              <option value="Biscuits">Biscuits 🥖</option>
+              <option value="Sweets">Sweets 🍩</option>
+              <option value="Snacks">Snacks 🧆</option>
+              <option value="Beverages">Beverages 🥤</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">Emoji Icon</label>
+            <input type="text" id="prod-icon-input" placeholder="🎂" value="🎂" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none text-center">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">Selling Price (৳) *</label>
+            <input type="number" id="prod-price-input" step="0.5" min="0" required placeholder="150" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+          </div>
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">Cost Price (৳)</label>
+            <input type="number" id="prod-cost-input" step="0.5" min="0" placeholder="80" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+          </div>
+          <div>
+            <label class="block font-medium text-slate-700 mb-1">Stock Quantity *</label>
+            <input type="number" id="prod-stock-input" min="0" required placeholder="20" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">Description</label>
+          <textarea id="prod-desc-input" rows="2" placeholder="Brief details about ingredients or taste..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"></textarea>
+        </div>
+
+        <div class="pt-3 flex justify-end gap-3 border-t border-slate-100">
+          <button type="button" onclick="closeProductModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold">Cancel</button>
+          <button type="submit" class="px-5 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-semibold shadow-md shadow-orange-600/20">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. ADD / EDIT CUSTOMER MODAL -->
+  <div id="modal-customer" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 id="modal-customer-title" class="font-bold text-slate-900 text-base">Add New Customer</h3>
+        <button onclick="closeCustomerModal()" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="form-customer" onsubmit="handleCustomerFormSubmit(event)" class="space-y-4 text-xs">
+        <input type="hidden" id="cust-id-input">
+        
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">Customer Name *</label>
+          <input type="text" id="cust-name-input" required placeholder="e.g. Shakib Al Hasan" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">Phone Number *</label>
+          <input type="text" id="cust-phone-input" required placeholder="01711223344" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">Email Address</label>
+          <input type="email" id="cust-email-input" placeholder="customer@example.com" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-medium text-slate-700 mb-1">Delivery Address</label>
+          <input type="text" id="cust-address-input" placeholder="Mirpur 10, Dhaka" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none">
+        </div>
+
+        <div class="pt-3 flex justify-end gap-3 border-t border-slate-100">
+          <button type="button" onclick="closeCustomerModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold">Cancel</button>
+          <button type="submit" class="px-5 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-semibold shadow-md">Save Customer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. PRINTABLE THERMAL RECEIPT / INVOICE MODAL -->
+  <div id="modal-receipt" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+      
+      <!-- Printable Receipt Body -->
+      <div id="printable-receipt" class="text-xs font-mono space-y-3 p-2 border border-dashed border-slate-300 rounded-lg">
+        <div class="text-center">
+          <h2 class="font-bold text-base text-slate-900 uppercase">Sweet & Crust Bakery</h2>
+          <p class="text-[10px] text-slate-500">Dhanmondi Outlet, Dhaka</p>
+          <p class="text-[10px] text-slate-500">Phone: +880 1700-000000</p>
+          <div class="border-b border-dashed border-slate-400 my-2"></div>
+        </div>
+
+        <div class="space-y-1 text-[11px]">
+          <p>Order ID: <span id="receipt-order-id" class="font-bold">#ORD-0000</span></p>
+          <p>Date: <span id="receipt-date">2026-08-27</span></p>
+          <p>Customer: <span id="receipt-cust-name">Walk-in</span></p>
+          <p>Phone: <span id="receipt-cust-phone">N/A</span></p>
+        </div>
+
+        <div class="border-b border-dashed border-slate-400 my-2"></div>
+
+        <!-- Receipt Table -->
+        <table class="w-full text-left text-[11px]">
+          <thead>
+            <tr class="border-b border-slate-200">
+              <th class="pb-1">Item</th>
+              <th class="pb-1 text-center">Qty</th>
+              <th class="pb-1 text-right">Price</th>
+            </tr>
+          </thead>
+          <tbody id="receipt-items-body">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+
+        <div class="border-b border-dashed border-slate-400 my-2"></div>
+
+        <div class="space-y-1 text-right text-[11px]">
+          <p>Subtotal: <span id="receipt-subtotal">৳ 0</span></p>
+          <p>Discount: <span id="receipt-discount">৳ 0</span></p>
+          <p>Tax (5%): <span id="receipt-tax">৳ 0</span></p>
+          <p class="font-bold text-sm pt-1">Grand Total: <span id="receipt-grand-total">৳ 0</span></p>
+          <p class="text-[10px]">Payment Method: <span id="receipt-payment" class="font-bold">Cash</span></p>
+        </div>
+
+        <div class="border-b border-dashed border-slate-400 my-2"></div>
+        <p class="text-center text-[10px] text-slate-500">Thank you for visiting! Please come again. 🧁</p>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="flex gap-3 no-print">
+        <button onclick="closeReceiptModal()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl">Close</button>
+        <button onclick="window.print()" class="flex-1 py-2.5 bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold rounded-xl shadow-md flex items-center justify-center gap-2">
+          <i class="fa-solid fa-print"></i> Print Invoice
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container"></div>
+
+  <!-- JS Scripts -->
+  <script src="js/sampleData.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
